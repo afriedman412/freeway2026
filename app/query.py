@@ -43,7 +43,7 @@ class FetchRun:
     def __init__(
         self,
         *,
-        variant: Literal["date", "committee"],
+        variant: Literal["expenditure", "contribution"],
         key: str,
         cycle: int,
         per_page: int = 100,

@@ -1,8 +1,9 @@
 from app.query import fetch, FetchRun
 from app.ingestion import ingest_jsonl
 from app.mail import send_email
-from app.db import get_engine
-from app.helpers import get_now, format_results
+from app.db import get_engine, create_tables
+from app.helpers import get_now, format_results, get_today
+from app.config import CYCLE
 import os
 import time
 
@@ -47,7 +48,17 @@ def run(variant, key, cycle):
     send_email(
         subject=subject,
         body=body,
-        to=os.getenv('TEST_TARGETS'),
+        to="afriedman412@gmail.com",
         sender="steadynappin@gmail.com",
         df=new_data_df
+    )
+
+
+if __name__ == "__main__":
+    today = get_today()
+    create_tables()
+    run(
+        variant="expenditure",
+        key=today,
+        cycle=CYCLE
     )

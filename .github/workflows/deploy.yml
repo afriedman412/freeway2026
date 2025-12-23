@@ -1,0 +1,33 @@
+name: Deploy to Cloud Run Job
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Build & Push Image
+        run: |
+          IMAGE=us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fec/fec:latest
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Update Cloud Run Job
+        run: |
+          gcloud run jobs update fec-ingest \
+            --image $IMAGE \
+            --region ${{ secrets.GCP_REGION }}

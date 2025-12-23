@@ -7,12 +7,16 @@ from app.schemas import Expenditure, Contribution
 
 FEC_URL = "https://api.open.fec.gov/v1/schedules/{}"
 
+CYCLE = 2026
+
 DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
 
 POSTGRES_URL = os.getenv(
     "POSTGRES_URL",
     "postgresql+psycopg2://localhost/postgres",
 )
+
+DT_FORMAT = "%Y-%m-%d"
 
 
 @dataclass(frozen=True)

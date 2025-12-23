@@ -3,6 +3,7 @@ from sqlmodel import Session, SQLModel
 from typing import Dict, Any, List
 import json
 from app.logger import logger
+from app.config import DT_FORMAT
 from pathlib import Path
 from datetime import datetime as dt
 from typing import Optional
@@ -41,6 +42,12 @@ def get_now():
     )
 
     ts = now_hour.strftime("%Y-%m-%d %H:00")
+    return ts
+
+
+def get_today():
+    now_ = dt.now(ZoneInfo("America/New_York"))
+    ts = now_.strftime(DT_FORMAT)
     return ts
 
 # ------------------------------------------------------------------------------
