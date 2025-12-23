@@ -10,7 +10,7 @@ def get_engine():
     )
 
 
-def create_tables(database_url: str, echo: bool = False) -> None:
+def create_tables(database_url: str = POSTGRES_URL, echo: bool = False) -> None:
     engine = create_engine(database_url, echo=echo)
     SQLModel.metadata.create_all(engine)
 

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker stop fec-test-db
+docker stop test_db

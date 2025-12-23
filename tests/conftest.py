@@ -1,5 +1,6 @@
 import pytest
 from sqlmodel import SQLModel
+import os
 from app.db import get_engine
 from app.config import DATA_DIR
 from tests.helpers import reset_data_dir
@@ -15,6 +16,16 @@ def engine():
     yield engine
 
     SQLModel.metadata.drop_all(engine)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def set_test_postgres_url():
+    # this is hard-wired in start_test_db.sh
+    os.environ["POSTGRES_URL"] = (
+        "postgresql+psycopg2://postgres:postgres@localhost:5433/test_db"
+    )
+    yield
+    os.environ.pop("POSTGRES_URL", None)
 
 
 @pytest.fixture

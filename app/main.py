@@ -1,6 +1,7 @@
 from app.query import fetch, FetchRun
 from app.ingestion import ingest_jsonl
 from app.mail import send_email
+from app.logger import logger
 from app.db import get_engine, create_tables
 from app.helpers import get_now, format_results, get_today
 from app.config import CYCLE
@@ -57,8 +58,10 @@ def run(variant, key, cycle):
 if __name__ == "__main__":
     today = get_today()
     create_tables()
+    logger.info("Running...")
     run(
         variant="expenditure",
         key=today,
         cycle=CYCLE
     )
+    logger.info("Run complete.")
