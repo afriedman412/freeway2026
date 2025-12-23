@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+import subprocess
 
 
 EXPECTED_SUBDIRS = {"schedule_a", "schedule_e"}
@@ -36,3 +37,16 @@ def reset_data_dir(data_dir: Path):
 
     # If all checks pass, delete the whole directory
     shutil.rmtree(data_dir)
+
+
+def _postgres_ready(container: str) -> bool:
+    result = subprocess.run(
+        [
+            "docker", "exec", container,
+            "pg_isready",
+            "-U", "postgres",
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return result.returncode == 0

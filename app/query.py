@@ -110,7 +110,7 @@ def fetch(run: FetchRun) -> None:
         run.key,
     )
 
-    run_fec_query(
+    written = run_fec_query(
         url=run.url,
         base_params=run.base_params,
         sort_field=run.sort_field,
@@ -121,6 +121,11 @@ def fetch(run: FetchRun) -> None:
         sleep_every=run.sleep_every,
         sleep_seconds=run.sleep_seconds,
     )
+    logger.info(
+        "%s new entries | variant=%s | cycle=%s | target=%s",
+        written, run.variant, run.cycle, run.key
+    )
+    return written > 0
 
 
 def run_fec_query(
@@ -169,7 +174,7 @@ def run_fec_query(
         if r is None:
             save_checkpoint(checkpoint_path, page=page)
             logger.warning("429 hit — checkpoint saved at page %s", page)
-            return
+            return written
 
         payload = r.json()
         results = payload.get("results", [])
@@ -183,7 +188,7 @@ def run_fec_query(
             remaining = max_results - written
             if remaining <= 0:
                 logger.info("max_results=%s reached — stopping", max_results)
-                return
+                return written
             results = results[:remaining]
 
         write_jsonl(output_path, results)
@@ -193,7 +198,7 @@ def run_fec_query(
 
         if max_results is not None and written >= max_results:
             logger.info("max_results=%s reached — stopping", max_results)
-            return
+            return written
 
         pages = payload.get("pagination", {}).get("pages", 0)
         if page >= pages:
@@ -206,6 +211,7 @@ def run_fec_query(
 
     if checkpoint_path.exists():
         checkpoint_path.unlink()
+    return written
 
 
 @retry(

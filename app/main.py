@@ -18,41 +18,44 @@ def run(variant, key, cycle):
         cycle=cycle,
     )
 
-    fetch(run)
-    engine = get_engine()
+    new_data = fetch(run)
+    if new_data:
+        engine = get_engine()
 
-    new_data_df, new_committees_df = ingest_jsonl(
-        run.output_path,
-        run.schema,
-        engine
-    )
+        new_data_df, new_committees_df = ingest_jsonl(
+            run.output_path,
+            run.schema,
+            engine
+        )
 
-    runtime_seconds = round(time.perf_counter() - start, 2)
+        runtime_seconds = round(time.perf_counter() - start, 2)
 
-    ts = get_now()
-    subject = f"[sludgewire] New {variant.title()}s, {ts}"
+        ts = get_now()
+        subject = f"[sludgewire] New {variant.title()}s, {ts}"
 
-    results = {
-        f"new_{variant}s": len(new_data_df),
-        "new_committees": len(new_committees_df),
-        "runtime_seconds": runtime_seconds,
-    }
+        results = {
+            f"new_{variant}s": len(new_data_df),
+            "new_committees": len(new_committees_df),
+            "runtime_seconds": runtime_seconds,
+        }
 
-    body = f"""
-        New data for {ts}!
+        body = f"""
+            New data for {ts}!
 
-        Results:
-        --------
-        {format_results(results)}
-    """
+            Results:
+            --------
+            {format_results(results)}
+        """
 
-    send_email(
-        subject=subject,
-        body=body,
-        to="afriedman412@gmail.com",
-        sender="steadynappin@gmail.com",
-        df=new_data_df
-    )
+        send_email(
+            subject=subject,
+            body=body,
+            to="afriedman412@gmail.com",
+            sender="steadynappin@gmail.com",
+            df=new_data_df
+        )
+    else:
+        logger.info("No new data! ")
 
 
 if __name__ == "__main__":
