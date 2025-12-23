@@ -22,7 +22,7 @@ jobs:
 
       - name: Build & Push Image
         run: |
-          IMAGE=us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fec/fec:latest
+          IMAGE=us-central1-docker.pkg.dev/freeway2026/fec/fec:latest
           docker build -t $IMAGE .
           docker push $IMAGE
 
@@ -30,4 +30,4 @@ jobs:
         run: |
           gcloud run jobs update fec-ingest \
             --image $IMAGE \
-            --region ${{ secrets.GCP_REGION }}
+            --region us-central1
