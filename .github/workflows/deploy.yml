@@ -30,6 +30,6 @@ jobs:
 
       - name: Update Cloud Run Job
         run: |
-          gcloud run jobs update fec-ingest \
+          gcloud run jobs update freeway2026 \
             --image $IMAGE \
             --region us-central1
