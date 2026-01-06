@@ -4,7 +4,7 @@ from app.mail import send_email
 from app.logger import logger
 from app.db import get_engine, create_tables
 from app.helpers import get_now, format_results, get_today
-from app.config import CYCLE
+from app.config import CYCLE, TARGET_EMAILS
 import os
 import time
 
@@ -50,7 +50,7 @@ def run(variant, key, cycle):
         send_email(
             subject=subject,
             body=body,
-            to="afriedman412@gmail.com",
+            to=TARGET_EMAILS,
             sender="steadynappin@gmail.com",
             df=new_data_df
         )

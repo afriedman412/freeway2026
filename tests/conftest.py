@@ -46,6 +46,12 @@ def docker_postgres():
         f"postgresql+psycopg2://postgres:postgres@localhost:{POSTGRES_PORT}/test_db"
     )
 
+    import app.config as config
+    import app.db as db
+
+    config.POSTGRES_URL = os.environ["POSTGRES_URL"]
+    db.POSTGRES_URL = os.environ["POSTGRES_URL"]
+
     yield
 
     subprocess.run(

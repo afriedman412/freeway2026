@@ -18,6 +18,10 @@ POSTGRES_URL = os.getenv(
 
 DT_FORMAT = "%Y-%m-%d"
 
+TARGET_EMAILS = [
+    "afriedman412@gmail.com", "donny@readsludge.com", "david@readsludge.com"
+]
+
 
 @dataclass(frozen=True)
 class VariantSpec:
