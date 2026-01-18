@@ -22,11 +22,21 @@ def run(variant, key, cycle):
     if new_data:
         engine = get_engine()
 
-        new_data_df, new_committees_df = ingest_jsonl(
+        result = ingest_jsonl(
             run.output_path,
             run.schema,
             engine
         )
+
+        if result is None:
+            logger.info("No new data after deduplication!")
+            return
+
+        new_data_df, new_committees_df = result
+
+        if new_data_df.empty:
+            logger.info("No new data after deduplication!")
+            return
 
         runtime_seconds = round(time.perf_counter() - start, 2)
 

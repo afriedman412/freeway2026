@@ -27,6 +27,19 @@ def test_full_ingestion_flow(engine, fake_email, clean_data_dir):
     )
 
     # ---------------------------------------
+    # Assertions: emails sent for new data
+    # ---------------------------------------
+    assert len(fake_email) >= 1  # at least one variant found new data
+
+    first = fake_email[0]
+    assert first["subject"] is not None
+    assert "results" in first["body"].lower()
+    assert first['df'] is not None
+    assert not first["df"].empty  # ✅ inserts happened
+
+    emails_after_first_run = len(fake_email)
+
+    # ---------------------------------------
     # Second run (should produce duplicates)
     # ---------------------------------------
     run(
@@ -42,6 +55,11 @@ def test_full_ingestion_flow(engine, fake_email, clean_data_dir):
     )
 
     # ---------------------------------------
+    # Assertions: no new emails for duplicates
+    # ---------------------------------------
+    assert len(fake_email) == emails_after_first_run  # ✅ no new emails sent
+
+    # ---------------------------------------
     # Assertions: database state
     # ---------------------------------------
     with engine.connect() as conn:
@@ -54,21 +72,5 @@ def test_full_ingestion_flow(engine, fake_email, clean_data_dir):
     assert contrib_count > 0
     assert exp_count > 0
 
-    # ---------------------------------------
-    # Assertions: email was sent
-    # ---------------------------------------
-
-    assert len(fake_email) >= 1
-
-    first = fake_email[0]
-    assert first["subject"] is not None
-    assert "results" in first["body"].lower()
-    assert first['df'] is not None
-    assert not first["df"].empty  # ✅ inserts happened
-
-    last = fake_email[-1]
-    assert last["df"].empty       # ✅ duplicates skipped
-
     # The key assertion: email only includes NEW rows
-    # On the second run, this should be empty or small
     assert len(first["df"]) <= contrib_count + exp_count
