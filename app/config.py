@@ -42,6 +42,7 @@ VARIANTS = {
             "two_year_transaction_period": cycle,
             "min_date": key,
             "max_date": key,
+            "is_notice": "true",
         },
     ),
     "contribution": VariantSpec(
