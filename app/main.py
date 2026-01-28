@@ -118,11 +118,23 @@ if __name__ == "__main__":
     if os.environ.get("PRODUCTION"):
         today = get_today()
         logger.info("Running production mode...")
+
+        # Expenditures (24/48 hour notices)
+        logger.info("Checking expenditures...")
         run(
             variant="expenditure",
             key=today,
             cycle=CYCLE
         )
+
+        # Contributions >= $40k
+        logger.info("Checking contributions...")
+        run(
+            variant="contribution",
+            key=today,
+            cycle=CYCLE
+        )
+
         logger.info("Run complete.")
     else:
         run_test_mode()
