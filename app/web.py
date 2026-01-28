@@ -62,6 +62,51 @@ def debug_db():
 
 @app.get("/", response_class=HTMLResponse)
 def landing_page():
+    """Show unique committees with large filings, linking to FEC pages."""
+    engine = get_engine()
+    df = get_large_expenditures(engine, min_amount=50000)
+
+    if df.empty:
+        table_html = "<p>No committees with filings >= $50k found.</p>"
+    else:
+        # Get unique committees with their total and max filing
+        committees = df.groupby(["committee_id", "committee_name"]).agg({
+            "expenditure_amount": ["sum", "max", "count"]
+        }).reset_index()
+        committees.columns = ["committee_id", "committee_name", "total", "largest", "num_filings"]
+        committees = committees.sort_values("total", ascending=False)
+
+        # Build table with FEC links
+        rows = []
+        for _, row in committees.iterrows():
+            fec_link = f'<a href="https://www.fec.gov/data/committee/{row["committee_id"]}/" target="_blank">{row["committee_id"]}</a>'
+            rows.append({
+                "Committee": row["committee_name"] or "Unknown",
+                "FEC ID": fec_link,
+                "Total": f"${row['total']:,.2f}",
+                "Largest": f"${row['largest']:,.2f}",
+                "# Filings": int(row["num_filings"])
+            })
+
+        import pandas as pd
+        display_df = pd.DataFrame(rows)
+        table_html = display_df.to_html(index=False, classes="table", escape=False)
+
+    return f"""
+    <html>
+    <head><title>Sludgewire - Large Filers</title></head>
+    <body>
+        <h1>Committees with Filings >= $50k</h1>
+        {table_html}
+        <p><a href="/transactions">View all transactions</a> | <a href="/config">Config</a></p>
+    </body>
+    </html>
+    """
+
+
+@app.get("/transactions", response_class=HTMLResponse)
+def transactions_page():
+    """Show individual transactions >= $50k."""
     engine = get_engine()
     df = get_large_expenditures(engine, min_amount=50000)
 
@@ -81,11 +126,11 @@ def landing_page():
 
     return f"""
     <html>
-    <head><title>Sludgewire - Expenditures</title></head>
+    <head><title>Sludgewire - Transactions</title></head>
     <body>
         <h1>Expenditures >= $50k</h1>
         {table_html}
-        <p><a href="/config">Config</a></p>
+        <p><a href="/">Back to committees</a> | <a href="/config">Config</a></p>
     </body>
     </html>
     """
