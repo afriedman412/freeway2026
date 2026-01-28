@@ -70,8 +70,8 @@ def landing_page():
     else:
         # Select key columns for display
         display_cols = [
-            "expenditure_date", "expenditure_amount", "committee_name",
-            "payee_name", "expenditure_description"
+            "transaction_id", "expenditure_date", "expenditure_amount",
+            "committee_name", "payee_name", "expenditure_description"
         ]
         display_df = df[[c for c in display_cols if c in df.columns]].copy()
         display_df["expenditure_amount"] = display_df["expenditure_amount"].apply(
