@@ -32,4 +32,5 @@ jobs:
         run: |
           gcloud run jobs update freeway2026 \
             --image $IMAGE \
-            --region us-central1
+            --region us-central1 \
+            --set-env-vars PRODUCTION=1

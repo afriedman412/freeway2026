@@ -2,7 +2,7 @@ from app.query import fetch, FetchRun
 from app.ingestion import ingest_jsonl
 from app.mail import send_email
 from app.logger import logger
-from app.db import get_engine, create_tables
+from app.db import get_engine, create_tables, get_latest_expenditure
 from app.helpers import get_now, format_results, get_today
 from app.config import CYCLE, TARGET_EMAILS
 import os
@@ -68,13 +68,57 @@ def run(variant, key, cycle):
         logger.info("No new data! ")
 
 
-if __name__ == "__main__":
-    today = get_today()
-    create_tables()
-    logger.info("Running...")
-    run(
-        variant="expenditure",
-        key=today,
-        cycle=CYCLE
+def run_test_mode():
+    """Send a test email with the most recent expenditure from the database."""
+    logger.info("Running in TEST MODE...")
+    engine = get_engine()
+
+    latest_df = get_latest_expenditure(engine)
+
+    if latest_df.empty:
+        logger.info("No expenditures found in database!")
+        return
+
+    ts = get_now()
+    row = latest_df.iloc[0]
+    recipients_list = "\n".join(f"  - {email}" for email in TARGET_EMAILS)
+
+    body = f"""[TEST MODE] Most recent expenditure as of {ts}
+
+Recipients:
+{recipients_list}
+
+Latest Record:
+--------------
+Date:          {row['expenditure_date']}
+Amount:        ${row['expenditure_amount']:,.2f}
+Committee:     {row['committee_name']} ({row['committee_id']})
+Payee:         {row['payee_name']}
+Description:   {row['expenditure_description']}
+"""
+
+    send_email(
+        subject=f"[sludgewire] TEST - Last Update Check, {ts}",
+        body=body,
+        to=TARGET_EMAILS,
+        sender="steadynappin@gmail.com",
+        df=latest_df,
+        attachment_format="json"
     )
-    logger.info("Run complete.")
+    logger.info("Test email sent!")
+
+
+if __name__ == "__main__":
+    create_tables()
+
+    if os.environ.get("PRODUCTION"):
+        today = get_today()
+        logger.info("Running production mode...")
+        run(
+            variant="expenditure",
+            key=today,
+            cycle=CYCLE
+        )
+        logger.info("Run complete.")
+    else:
+        run_test_mode()

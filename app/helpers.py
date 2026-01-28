@@ -28,6 +28,10 @@ def df_to_csv_bytes(df) -> bytes:
     return buf.getvalue().encode("utf-8")
 
 
+def df_to_json_bytes(df) -> bytes:
+    return df.to_json(orient="records", indent=2).encode("utf-8")
+
+
 def format_results(results: dict) -> str:
     return "\n".join(
         f"{k:25} {results[k]}"
