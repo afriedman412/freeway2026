@@ -62,15 +62,14 @@ def debug_db():
 
 @app.get("/", response_class=HTMLResponse)
 def landing_page_today():
-    """Redirect to today's date."""
+    """Show today's filings."""
     from datetime import datetime
-    today = datetime.now().strftime("%Y/%m/%d")
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url=f"/{today}")
+    now = datetime.now()
+    return landing_page(now.year, now.month, now.day, is_today=True)
 
 
 @app.get("/{year:int}/{month:int}/{day:int}", response_class=HTMLResponse)
-def landing_page(year: int, month: int, day: int):
+def landing_page(year: int, month: int, day: int, is_today: bool = False):
     """Show unique committees with large filings for a specific date."""
     import pandas as pd
     from datetime import datetime, timedelta
@@ -116,13 +115,14 @@ def landing_page(year: int, month: int, day: int):
     next_day = current + timedelta(days=1)
     prev_link = prev_day.strftime("/%Y/%m/%d")
     next_link = next_day.strftime("/%Y/%m/%d")
+    today_link = '' if is_today else ' | <a href="/">Today</a>'
 
     return f"""
     <html>
     <head><title>Sludgewire - {display_date}</title></head>
     <body>
         <h1>Filings >= $50k for {date_str}</h1>
-        <p><a href="{prev_link}">&larr; Previous day</a> | <a href="{next_link}">Next day &rarr;</a></p>
+        <p><a href="{prev_link}">&larr; Previous day</a> | <a href="{next_link}">Next day &rarr;</a>{today_link}</p>
         <form method="get" action="/go">
             <input type="date" name="date" value="{date_str}">
             <button type="submit">Go</button>
