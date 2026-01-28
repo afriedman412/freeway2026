@@ -51,7 +51,7 @@ VARIANTS = {
         schema=Contribution,
         build_base_params=lambda *, key, cycle: {
             "two_year_transaction_period": cycle,
-            "min_amount": 50000,
+            "min_amount": 40000,
             "min_date": key,
             "max_date": key,
         },
