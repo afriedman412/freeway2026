@@ -61,13 +61,32 @@ def debug_db():
 
 
 @app.get("/", response_class=HTMLResponse)
-def landing_page():
-    """Show unique committees with large filings, linking to FEC pages."""
+def landing_page_today():
+    """Redirect to today's date."""
+    from datetime import datetime
+    today = datetime.now().strftime("%Y/%m/%d")
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=f"/{today}")
+
+
+@app.get("/{year:int}/{month:int}/{day:int}", response_class=HTMLResponse)
+def landing_page(year: int, month: int, day: int):
+    """Show unique committees with large filings for a specific date."""
+    import pandas as pd
+    from datetime import datetime, timedelta
+
+    date_str = f"{year:04d}-{month:02d}-{day:02d}"
+    display_date = f"{year:04d}/{month:02d}/{day:02d}"
+
     engine = get_engine()
     df = get_large_expenditures(engine, min_amount=50000)
 
+    if not df.empty:
+        # Filter to the selected date
+        df = df[df["expenditure_date"] == date_str]
+
     if df.empty:
-        table_html = "<p>No committees with filings >= $50k found.</p>"
+        table_html = f"<p>No filings >= $50k found for {date_str}.</p>"
     else:
         # Get unique committees with their total and max filing
         committees = df.groupby(["committee_id", "committee_name"]).agg({
@@ -88,20 +107,41 @@ def landing_page():
                 "# Filings": int(row["num_filings"])
             })
 
-        import pandas as pd
         display_df = pd.DataFrame(rows)
         table_html = display_df.to_html(index=False, classes="table", escape=False)
 
+    # Navigation links
+    current = datetime(year, month, day)
+    prev_day = current - timedelta(days=1)
+    next_day = current + timedelta(days=1)
+    prev_link = prev_day.strftime("/%Y/%m/%d")
+    next_link = next_day.strftime("/%Y/%m/%d")
+
     return f"""
     <html>
-    <head><title>Sludgewire - Large Filers</title></head>
+    <head><title>Sludgewire - {display_date}</title></head>
     <body>
-        <h1>Committees with Filings >= $50k</h1>
+        <h1>Filings >= $50k for {date_str}</h1>
+        <p><a href="{prev_link}">&larr; Previous day</a> | <a href="{next_link}">Next day &rarr;</a></p>
+        <form method="get" action="/go">
+            <input type="date" name="date" value="{date_str}">
+            <button type="submit">Go</button>
+        </form>
+        <hr>
         {table_html}
         <p><a href="/transactions">View all transactions</a> | <a href="/config">Config</a></p>
     </body>
     </html>
     """
+
+
+@app.get("/go", response_class=HTMLResponse)
+def go_to_date(date: str):
+    """Redirect to a specific date from the date picker."""
+    from fastapi.responses import RedirectResponse
+    # date comes in as YYYY-MM-DD, convert to URL format
+    parts = date.split("-")
+    return RedirectResponse(url=f"/{parts[0]}/{parts[1]}/{parts[2]}")
 
 
 @app.get("/transactions", response_class=HTMLResponse)
