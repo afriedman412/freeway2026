@@ -1,4 +1,4 @@
-name: Deploy to Cloud Run Job
+name: Deploy to Cloud Run
 
 on:
   push:
@@ -34,3 +34,15 @@ jobs:
             --image $IMAGE \
             --region us-central1 \
             --set-env-vars PRODUCTION=1
+
+      - name: Deploy Cloud Run Service
+        run: |
+          gcloud run deploy sludgewire \
+            --image $IMAGE \
+            --region us-central1 \
+            --platform managed \
+            --allow-unauthenticated \
+            --command "uvicorn" \
+            --args "app.web:app,--host,0.0.0.0,--port,8080" \
+            --port 8080 \
+            --set-env-vars "POSTGRES_URL=${{ secrets.POSTGRES_URL }},ADMIN_USER=${{ secrets.ADMIN_USER }},ADMIN_PASS=${{ secrets.ADMIN_PASS }},GOOGLE_APP_PW=${{ secrets.GOOGLE_APP_PW }}"

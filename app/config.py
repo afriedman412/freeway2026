@@ -50,8 +50,8 @@ VARIANTS = {
         sort_field="-contribution_receipt_date",
         schema=Contribution,
         build_base_params=lambda *, key, cycle: {
-            "committee_id": key,
             "two_year_transaction_period": cycle,
+            "committee_id": key,
         },
     ),
 }

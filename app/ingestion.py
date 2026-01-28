@@ -3,7 +3,7 @@ from pathlib import Path
 from sqlalchemy.dialects.postgresql import insert
 from app.helpers import validate_df, load_jsonl
 from app.logger import logger
-from app.schemas import Committee, Expenditure
+from app.schemas import Committee, Expenditure, Contribution
 
 
 def ingest_jsonl(
@@ -53,6 +53,11 @@ def ingest_jsonl(
             subset=["expenditure_date", "expenditure_amount"]
         )
         logger.info("after expenditure filter: %s", len(df))
+    elif schema is Contribution:
+        df = df.dropna(
+            subset=["contribution_receipt_date", "contribution_receipt_amount"]
+        )
+        logger.info("after contribution filter: %s", len(df))
 
     # --------------------------------------------------
     # 5. Schema validation (pure validation)

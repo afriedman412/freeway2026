@@ -1,6 +1,7 @@
 from typing import Optional
 from sqlmodel import SQLModel, Field
 from sqlalchemy import Column, Text, Numeric, BigInteger, PrimaryKeyConstraint
+from datetime import datetime
 
 
 # ============================================================
@@ -110,6 +111,10 @@ class Contribution(SQLModel, table=True):
     link_id: Optional[int] = Field(sa_column=Column(BigInteger))
     two_year_transaction_period: Optional[str] = Field(sa_column=Column(Text))
 
+    receipt_type: Optional[str] = Field(sa_column=Column(Text))
+    receipt_type_desc: Optional[str] = Field(sa_column=Column(Text))
+    receipt_type_full: Optional[str] = Field(sa_column=Column(Text))
+
 
 # ============================================================
 # SCHEDULE E — EXPENDITURES
@@ -165,3 +170,15 @@ class Expenditure(SQLModel, table=True):
     schedule_type_full: Optional[str] = Field(sa_column=Column(Text))
 
     link_id: Optional[int] = Field(sa_column=Column(BigInteger))
+
+
+# ============================================================
+# APP CONFIG
+# ============================================================
+
+class AppConfig(SQLModel, table=True):
+    __tablename__ = "app_config"
+
+    key: str = Field(primary_key=True)
+    value: str = Field(sa_column=Column(Text))
+    updated_at: Optional[datetime] = None

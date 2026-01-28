@@ -9,22 +9,22 @@ import os
 import time
 
 
-def run(variant, key, cycle):
+def run(variant, key, cycle, send_notifications=True):
     start = time.perf_counter()
 
-    run = FetchRun(
+    fetch_run = FetchRun(
         variant=variant,
         key=key,
         cycle=cycle,
     )
 
-    new_data = fetch(run)
+    new_data = fetch(fetch_run)
     if new_data:
         engine = get_engine()
 
         result = ingest_jsonl(
-            run.output_path,
-            run.schema,
+            fetch_run.output_path,
+            fetch_run.schema,
             engine
         )
 
@@ -36,6 +36,10 @@ def run(variant, key, cycle):
 
         if new_data_df.empty:
             logger.info("No new data after deduplication!")
+            return
+
+        if not send_notifications:
+            logger.info(f"Ingested {len(new_data_df)} records (notifications disabled)")
             return
 
         runtime_seconds = round(time.perf_counter() - start, 2)
