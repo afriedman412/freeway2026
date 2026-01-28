@@ -42,7 +42,7 @@ jobs:
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
-            --command "uvicorn" \
-            --args "app.web:app,--host,0.0.0.0,--port,8080" \
             --port 8080 \
+            --add-cloudsql-instances freeway2026:us-central1:fec-db \
+            --set-env-vars "WEB_MODE=1" \
             --set-secrets "POSTGRES_URL=postgres-url:latest,GOOGLE_APP_PW=google-app-pw:latest,ADMIN_USER=admin-user:latest,ADMIN_PASS=admin-pass:latest"
