@@ -20,8 +20,8 @@ DT_FORMAT = "%Y-%m-%d"
 
 TARGET_EMAILS = [
     "afriedman412@gmail.com",
-    # "donny@readsludge.com",
-    # "david@readsludge.com"
+
+
 ]
 
 
@@ -50,6 +50,7 @@ VARIANTS = {
         sort_field="-contribution_receipt_date",
         schema=Contribution,
         build_base_params=lambda *, key, cycle: {
+            "committee_id": key,
             "two_year_transaction_period": cycle,
             "min_amount": 40000,
             "min_date": key,

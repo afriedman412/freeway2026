@@ -2,11 +2,28 @@ from app.query import fetch, FetchRun
 from app.ingestion import ingest_jsonl
 from app.mail import send_email
 from app.logger import logger
-from app.db import get_engine, create_tables, get_latest_expenditure
+from app.db import (
+    get_engine, create_tables, get_latest_expenditure, get_config
+)
 from app.helpers import get_now, format_results, get_today
 from app.config import CYCLE, TARGET_EMAILS
 import os
 import time
+
+
+def get_target_emails(engine):
+    """Get emails from DB config, fall back to hardcoded if DB fails."""
+    try:
+        emails = get_config(engine, "target_emails", None)
+        if emails:
+            logger.info("Using emails from DB config: %s", emails)
+            return emails
+        else:
+            logger.info("No emails in DB config, using fallback: %s", TARGET_EMAILS)
+            return TARGET_EMAILS
+    except Exception as e:
+        logger.warning("Failed to read emails from DB (%s), using fallback: %s", e, TARGET_EMAILS)
+        return TARGET_EMAILS
 
 
 def run(variant, key, cycle, send_notifications=True):
@@ -61,10 +78,12 @@ def run(variant, key, cycle, send_notifications=True):
             {format_results(results)}
         """
 
+        target_emails = get_target_emails(engine)
+        logger.info("Sending email! new_%ss=%s", variant, len(new_data_df))
         send_email(
             subject=subject,
             body=body,
-            to=TARGET_EMAILS,
+            to=target_emails,
             sender="steadynappin@gmail.com",
             df=new_data_df
         )
@@ -83,9 +102,10 @@ def run_test_mode():
         logger.info("No expenditures found in database!")
         return
 
+    target_emails = get_target_emails(engine)
     ts = get_now()
     row = latest_df.iloc[0]
-    recipients_list = "\n".join(f"  - {email}" for email in TARGET_EMAILS)
+    recipients_list = "\n".join(f"  - {email}" for email in target_emails)
 
     body = f"""[TEST MODE] Most recent expenditure as of {ts}
 
@@ -104,7 +124,7 @@ Description:   {row['expenditure_description']}
     send_email(
         subject=f"[sludgewire] TEST - Last Update Check, {ts}",
         body=body,
-        to=TARGET_EMAILS,
+        to=target_emails,
         sender="steadynappin@gmail.com",
         df=latest_df,
         attachment_format="json"

@@ -118,7 +118,8 @@ def insert_df(
     # --------------------------------------------------
     # Step 2: filter df down to only inserted rows
     # --------------------------------------------------
-    inserted_pk_set = set(inserted_pks)
+    # Convert Row objects to tuples for comparison
+    inserted_pk_set = set(tuple(row) for row in inserted_pks)
 
     mask = df[pk_cols].apply(tuple, axis=1).isin(inserted_pk_set)
     inserted_df = df[mask]
